@@ -1,0 +1,19 @@
+	/*for (int i = 0; i < grad_dir.rows; ++i) {
+		const unsigned char* row = grad_dir.ptr<unsigned char>(i);
+		for (int j = 0; j < grad_dir.cols; j++) {
+			//if((float)row[j] > thresh_max) std::cout << (float)row[j]<<std::endl;
+		}
+	}*/
+	//ofstream file1("orient1.txt"); file1 << grad_dir; file1.close();
+	//imshow("dir", dst);
+	
+7/21 work log:
+待辦事項:
+1. LaneDetection function name refine
+2. 在finding lane lines的function中Point x和y與實際Mat中rows和cols的關係
+3. 完成Lane detection
+完成事項:
+1. 完成
+2. x = col, y = row
+3. 完成
+
