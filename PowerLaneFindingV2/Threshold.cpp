@@ -9,10 +9,12 @@ using namespace std;
 
 Threshold::Threshold() {
 	_sobel_kernel_size = d_sobel_kernel_size;
+	_clahe = createCLAHE(2.0);
 }
 
 Threshold::Threshold(int sobel_kernel_size) {
 	_sobel_kernel_size = sobel_kernel_size;
+	_clahe = createCLAHE(2.0);
 }
 
 Mat Threshold::abs_sobel_thresh(char orient, int thresh_min, int thresh_max) {
@@ -49,15 +51,29 @@ Mat Threshold::yuv_thresh(int thresh_min, int thresh_max) {
 	return threshold_process(_u_channel, thresh_min, thresh_max, false);
 }
 
-Mat Threshold::combine_thresh(Mat src, int type) {
+Mat Threshold::lap_thresh(int thresh_min, int thresh_max) {
+	Mat lap;
+	Laplacian(_gray, lap, CV_64F, 3);
+	return threshold_process(lap, thresh_min, thresh_max, false);
+}
+
+Mat Threshold::can_thresh(int thresh_min, int thresh_max) {
+	Mat can;
+	Canny(_gray, can, thresh_min, thresh_max, _sobel_kernel_size);
+	can.convertTo(can, CV_8U);
+	return can;
+}
+
+Mat Threshold::combine_thresh(Mat src) {
 	clock_t tStart = clock();
 	Mat grad_x, grad_y, grad_mag, grad_dir;
-	Mat grad_hls, grad_bgr, grad_yuv;
+	Mat grad_hls, grad_bgr, grad_yuv, grad_lap, grad_can;
 	Mat grad_xy, grad_magdir, grad_maghls;
 	Mat dst, col, grad;
 	queue<future<Mat>> f;
 
 	source_image_process(src);
+	entrophy_cal();
 	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 
 	/*if (type & SOBEL_X) grad_x = abs_sobel_thresh('x', MIN_SOBEL_X_THRESH, MAX_SOBEL_X_THRESH);
@@ -66,56 +82,68 @@ Mat Threshold::combine_thresh(Mat src, int type) {
 	if (type & SOBEL_DIR) grad_dir = dir_thresh(MIN_SOBEL_DIR_THRESH, MAX_SOBEL_DIR_THRESH);
 	if (type & HLS_S) grad_hls = hls_thresh(MIN_HLS_S_THRESH, MAX_HLS_S_THRESH);
 	*/
-	if (type & SOBEL_DIR) f.push(async(launch::async, &Threshold::dir_thresh, this, MIN_SOBEL_DIR_THRESH, MAX_SOBEL_DIR_THRESH));
-	if (type & SOBEL_X) f.push(async(launch::async, &Threshold::abs_sobel_thresh, this, 'x', MIN_SOBEL_X_THRESH, MAX_SOBEL_X_THRESH));
-	if (type & SOBEL_Y) f.push(async(launch::async, &Threshold::abs_sobel_thresh, this, 'y', MIN_SOBEL_Y_THRESH, MAX_SOBEL_Y_THRESH));
-	if (type & SOBEL_MAG) f.push(async(launch::async, &Threshold::mag_thresh, this, MIN_SOBEL_MAG_THRESH, MAX_SOBEL_MAG_THRESH));
-	if (type & HLS_S) f.push(async(launch::async, &Threshold::hls_thresh, this, MIN_HLS_S_THRESH, MAX_HLS_S_THRESH));
-	if (type & BGR_R) f.push(async(launch::async, &Threshold::rgb_thresh, this, MIN_BGR_R_THRESH, MAX_BGR_R_THRESH));
-	if (type & YUV_U) f.push(async(launch::async, &Threshold::yuv_thresh, this, MIN_YUV_U_THRESH, MAX_YUV_U_THRESH));
+	if (_type & SOBEL_DIR) f.push(async(launch::async, &Threshold::dir_thresh, this, MIN_SOBEL_DIR_THRESH, MAX_SOBEL_DIR_THRESH));
+	if (_type & SOBEL_X) f.push(async(launch::async, &Threshold::abs_sobel_thresh, this, 'x', MIN_SOBEL_X_THRESH, MAX_SOBEL_X_THRESH));
+	if (_type & SOBEL_Y) f.push(async(launch::async, &Threshold::abs_sobel_thresh, this, 'y', MIN_SOBEL_Y_THRESH, MAX_SOBEL_Y_THRESH));
+	if (_type & SOBEL_MAG) f.push(async(launch::async, &Threshold::mag_thresh, this, MIN_SOBEL_MAG_THRESH, MAX_SOBEL_MAG_THRESH));
+	if (_type & HLS_S) f.push(async(launch::async, &Threshold::hls_thresh, this, MIN_HLS_S_THRESH, MAX_HLS_S_THRESH));
+	if (_type & BGR_R) f.push(async(launch::async, &Threshold::rgb_thresh, this, MIN_BGR_R_THRESH, MAX_BGR_R_THRESH));
+	if (_type & YUV_U) f.push(async(launch::async, &Threshold::yuv_thresh, this, MIN_YUV_U_THRESH, MAX_YUV_U_THRESH));
+	if (_type & LAP) f.push(async(launch::async, &Threshold::lap_thresh, this, MIN_LAP_THRESH, MAX_LAP_THRESH));
+	if (_type & CAN) f.push(async(launch::async, &Threshold::can_thresh, this, MIN_CAN_THRESH, MAX_CAN_THRESH));
 
 	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
-	if (type & SOBEL_DIR) {
+	if (_type & SOBEL_DIR) {
 		grad_dir = f.front().get();
 		f.pop();
 	}
-	if (type & SOBEL_X) {
+	if (_type & SOBEL_X) {
 		grad_x = f.front().get();
 		f.pop();
 	}
-	if (type & SOBEL_Y) {
+	if (_type & SOBEL_Y) {
 		grad_y = f.front().get();
 		f.pop();
 	}
-	if (type & SOBEL_MAG) {
+	if (_type & SOBEL_MAG) {
 		grad_mag = f.front().get();
 		f.pop();
 	}
-	if (type & HLS_S) {
+	if (_type & HLS_S) {
 		grad_hls = f.front().get();
 		f.pop();
 	} 
 	else grad_hls = Mat::zeros(Size(src.cols, src.rows), CV_8U);
-	if (type & BGR_R) {
+	if (_type & BGR_R) {
 		grad_bgr = f.front().get();
 		f.pop();
 	}
 	else grad_bgr = Mat::zeros(Size(src.cols, src.rows), CV_8U);
-	if (type & YUV_U) {
+	if (_type & YUV_U) {
 		grad_yuv = f.front().get();
 		f.pop();
 	}
 	else grad_yuv = Mat::zeros(Size(src.cols, src.rows), CV_8U);
+	if (_type & LAP) {
+		grad_lap = f.front().get();
+		f.pop();
+	}
+	else grad_lap = Mat::zeros(Size(src.cols, src.rows), CV_8U);
+	if (_type & CAN) {
+		grad_can = f.front().get();
+		f.pop();
+	}
+	else grad_can = Mat::zeros(Size(src.cols, src.rows), CV_8U);
 	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 
-	if ( (type & SOBEL_XY) == SOBEL_XY) bitwise_and(grad_x, grad_y, grad_xy);
-	else if (type & SOBEL_X) grad_xy = grad_x;
-	else if (type & SOBEL_Y) grad_xy = grad_y;
+	if ( (_type & SOBEL_XY) == SOBEL_XY) bitwise_and(grad_x, grad_y, grad_xy);
+	else if (_type & SOBEL_X) grad_xy = grad_x;
+	else if (_type & SOBEL_Y) grad_xy = grad_y;
 	else grad_xy = Mat::zeros(Size(src.cols, src.rows), CV_8U);
 	
-	if ( (type & SOBEL_MAGDIR) == SOBEL_MAGDIR) bitwise_and(grad_mag, grad_dir, grad_magdir);
-	else if (type & SOBEL_MAG) grad_magdir = grad_mag;
-	else if (type & SOBEL_DIR) grad_magdir = grad_dir;
+	if ( (_type & SOBEL_MAGDIR) == SOBEL_MAGDIR) bitwise_and(grad_mag, grad_dir, grad_magdir);
+	else if (_type & SOBEL_MAG) grad_magdir = grad_mag;
+	else if (_type & SOBEL_DIR) grad_magdir = grad_dir;
 	else grad_magdir = Mat::zeros(Size(src.cols, src.rows), CV_8U);
 	//imshow("x", grad_x);
 	//imshow("y", grad_y);
@@ -126,13 +154,39 @@ Mat Threshold::combine_thresh(Mat src, int type) {
 	//imshow("bgr", grad_bgr);
 	//imshow("yuv", grad_yuv);
 	//imshow("hls", grad_hls);
+	//imshow("lap", grad_lap);
+	//imshow("can", grad_can);
 	//ofstream file1("th_s_ch.txt"); file1 << grad_hls; file1.close();
 	bitwise_or(grad_xy, grad_magdir, grad);
+	bitwise_or(grad, grad_lap, grad);
+	bitwise_or(grad, grad_can, grad);
 	bitwise_or(grad_bgr, grad_hls, col);
 	bitwise_or(col, grad_yuv, col);
 	bitwise_or(grad, col, dst);
 	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 	return dst;
+}
+
+void Threshold::entrophy_cal() {
+	Mat hist;
+	int histSize = 256;
+	float range[] = { 0, 256 };
+	const float* histRange = { range };
+	bool uniform = true;
+	bool accumulate = false;
+	calcHist(&_gray, 1, 0, Mat(), hist, 1, &histSize, &histRange, uniform, accumulate);
+	hist /= _gray.total();
+	float entropy = 0;
+	for (int i = 0; i<256; i++) {
+		if (hist.at<float>(i, 0)>0) {
+			float x = hist.at<float>(i, 0) * log(hist.at<float>(i, 0)) * -1;
+			entropy += x;
+		}
+	}
+
+	cout << "entropy = " <<entropy << endl;
+	if (entropy < 4) _type = SOBEL_X | BGR_R | YUV_U;
+	else _type = SOBEL_X;
 }
 
 Mat Threshold::threshold_process(Mat src, double thresh_min, double thresh_max, bool scale) {
@@ -164,14 +218,17 @@ Mat Threshold::threshold_process(Mat src, double thresh_min, double thresh_max, 
 }
 
 void Threshold::source_image_process(Mat src) {
-	Mat src_blur, gray, hls, yuv;
+	Mat src_blur, hls, yuv;
 	vector<Mat> mv;
 
 	// reduce noise
 	GaussianBlur(src, src_blur, Size(3,3), 0, 0, BORDER_DEFAULT);
 	
 	// convert source image to GRAY-scale and HLS color space
-	cvtColor(src_blur, gray, COLOR_BGR2GRAY);
+	cvtColor(src_blur, _gray, COLOR_BGR2GRAY);
+	//_clahe->apply(_gray, _clahe_gray);
+	//imshow("clahe", gray);
+
 	cvtColor(src, hls, COLOR_BGR2HLS);
 	cvtColor(src, yuv, COLOR_BGR2YUV);
 
@@ -192,7 +249,7 @@ void Threshold::source_image_process(Mat src) {
 
 	// calculate sobel x and y
 	//Scharr(gray, _sobel_x, CV_64F, 1, 0);
-	Sobel(gray, _sobel_x, CV_64F, 1, 0, _sobel_kernel_size);
+	Sobel(_gray, _sobel_x, CV_64F, 1, 0, _sobel_kernel_size);
 	//Scharr(gray, _sobel_y, CV_64F, 0, 1);
-	Sobel(gray, _sobel_y, CV_64F, 0, 1, _sobel_kernel_size);
+	Sobel(_gray, _sobel_y, CV_64F, 0, 1, _sobel_kernel_size);
 }

@@ -16,4 +16,3 @@ private:
 
 
 #endif // PERSPECTIVE_H
-

@@ -10,8 +10,10 @@
 #define HLS_S                 (0b1<<4)
 #define BGR_R                 (0b1<<5)
 #define YUV_U                 (0b1<<6)
-#define IMG_COL_SIZE          1280
-#define IMG_ROW_SIZE          720
+#define LAP                   (0b1<<7)
+#define CAN                   (0b1<<8)
+#define IMG_COL_SIZE          854
+#define IMG_ROW_SIZE          480
 #define SCALE                 3
 
 #endif // !PARAMETER_H

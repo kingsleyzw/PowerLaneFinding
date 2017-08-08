@@ -42,6 +42,8 @@ void LaneDetection::find_base_points() {
 		
 	minMaxLoc(lanes_avg, NULL, NULL, NULL, &_idx[0]);
 
+	cout << _idx[0] << endl;
+
 	for (int i = 0; i < 150/SCALE; i++) {
 		if(_idx[0].x + i < lanes_avg.cols) lanes_avg.at<uchar>(0, _idx[0].x + i) = 0;
 		if(_idx[0].x - i >= 0) lanes_avg.at<uchar>(0, _idx[0].x - i) = 0;
@@ -49,6 +51,8 @@ void LaneDetection::find_base_points() {
 
 	minMaxLoc(lanes_avg, NULL, NULL, NULL, &_idx[1]);
 	
+	cout << _idx[1] << endl;
+
 	if (_idx[0].x > _idx[1].x)
 		swap(_idx[0], _idx[1]);
 }
@@ -66,8 +70,8 @@ void LaneDetection::find_line() {
 		win_y_low = _out_img.rows - i*_window_height;
 		win_y_high = _out_img.rows - (i + 1)*_window_height;
 		win_x_left_low = (cur_x_left - _margin >= 0) ? cur_x_left - _margin : 0;
-		win_x_left_high = cur_x_left + _margin;
-		win_x_right_low = cur_x_right - _margin;
+		win_x_left_high = (cur_x_left + _margin < _out_img.cols) ? cur_x_right + _margin : _out_img.cols - 1;
+		win_x_right_low = (cur_x_right - _margin >= 0) ? cur_x_right - _margin : 0;
 		win_x_right_high = (cur_x_right + _margin < _out_img.cols) ? cur_x_right + _margin : _out_img.cols - 1;
 		// Identify the nonzero pixels in x and y within the window
 		Mat non_zero_coordinates;
