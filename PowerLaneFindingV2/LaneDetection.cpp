@@ -7,7 +7,7 @@
 LaneDetection::LaneDetection() {
 	// for lane finding
 	_nwindows = 7;
-	_margin = 120 / SCALE;
+	_margin = 100 / SCALE;
 	_minpix = 50 / SCALE;
 
 	// for curvature calculation
@@ -80,10 +80,15 @@ vector<Point> LaneDetection::find_base_points(int find_loc) {
 
 	//cout << idx[0] << endl;
 
-	for (int i = 0; i < 150/SCALE; i++) {
-		if(idx[0].x + i < lanes_avg.cols) lanes_avg.at<uchar>(0, idx[0].x + i) = 0;
-		if(idx[0].x - i >= 0) lanes_avg.at<uchar>(0, idx[0].x - i) = 0;
+	if ((lanes_avg.cols - idx[0].x) < (idx[0].x - 0)) {
+		for (int i = idx[0].x - 150/SCALE; i < lanes_avg.cols; i++)
+			lanes_avg.at<uchar>(0, i) = 0;
 	}
+	else {
+		for (int i = 0; i < idx[0].x + 150/SCALE; i++) 
+			lanes_avg.at<uchar>(0, i) = 0;
+	}
+	
 
 	minMaxLoc(lanes_avg, NULL, NULL, NULL, &idx[1]);
 	
@@ -164,7 +169,7 @@ Mat LaneDetection::get_lane_curvature() {
 	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 	right_curverad = (1 + pow(pow((2 * store[2] * _out_img.rows * _ym_per_pix + store[1]), 2), 1.5)) / abs(2 * store[2]);
 	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
-	cout << "right lane curvature: " << right_curverad << endl;
+	//cout << "right lane curvature: " << right_curverad << endl;
 	
 	/*ostringstream strs;
 	strs << right_curverad;
@@ -174,7 +179,7 @@ Mat LaneDetection::get_lane_curvature() {
 	vec_num = _left_lane_inds_x.size();
 	polynomialfit(vec_num, _degree, _left_lane_inds_x, _left_lane_inds_y, store);
 	left_curverad = (1 + pow(pow((2 * store[2] * _out_img.rows * _ym_per_pix + store[1]), 2), 1.5)) / abs(2 * store[2]);
-	cout << "left lane curvature: " << left_curverad << endl;
+	//cout << "left lane curvature: " << left_curverad << endl;
 	/*strs.str("");
 	strs.clear();
 	strs << left_curverad;

@@ -2,10 +2,11 @@
 #include "Parameter.h"
 
 Perspective::Perspective() {
-	_src[0] = Point2f( 330. /SCALE, 240. /SCALE );
-	_src[1] = Point2f( 480. /SCALE, 240. /SCALE );
-	_src[2] = Point2f( 704. /SCALE, 382. /SCALE );
-	_src[3] = Point2f( 164. /SCALE, 382. /SCALE );
+	float src_offset = 20.;
+	_src[0] = Point2f( (330.) /SCALE, 240. /SCALE );
+	_src[1] = Point2f( (480.) /SCALE, 240. /SCALE );
+	_src[2] = Point2f( (704.) /SCALE, 382. /SCALE );
+	_src[3] = Point2f( (164.) /SCALE, 382. /SCALE );
 	float offset = 100.;
 	_dst[0] = Point2f( (0.  +offset) /SCALE, 0.   /SCALE );
 	_dst[1] = Point2f( (854.-offset) /SCALE, 0.   /SCALE );

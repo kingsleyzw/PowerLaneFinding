@@ -20,6 +20,7 @@
 #define MAX_LAP_THRESH        200
 #define MIN_CAN_THRESH        50
 #define MAX_CAN_THRESH        150
+#define ENTROPY_THRESHOLD     3.6
 
 #include <opencv2/opencv.hpp>
 using namespace cv;
