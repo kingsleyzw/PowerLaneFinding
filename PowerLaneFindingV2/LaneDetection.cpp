@@ -15,6 +15,7 @@ LaneDetection::LaneDetection() {
 	_xm_per_pix = 3.7 / 700;
 	_ym_per_pix = 30.0 / 720;
 }
+
 Mat LaneDetection::finding_lane_line(Mat lanes) {
 	//clock_t tStart = clock();
 	_window_height = int(lanes.rows / _nwindows);
@@ -29,6 +30,7 @@ Mat LaneDetection::finding_lane_line(Mat lanes) {
 	find_line();
 	return get_lane_curvature();
 }
+
 void LaneDetection::find_base_points() {
 	Mat lanes_avg;
 
@@ -56,6 +58,7 @@ void LaneDetection::find_base_points() {
 	if (_idx[0].x > _idx[1].x)
 		swap(_idx[0], _idx[1]);
 }
+
 void LaneDetection::find_line() {
 	int cur_x_left = _idx[0].x;
 	int cur_x_right = _idx[1].x;
@@ -116,6 +119,7 @@ void LaneDetection::find_line() {
 	//imshow("outImg", _out_img);
 	_process_img.copyTo(_out_img);
 }
+
 Mat LaneDetection::get_lane_curvature() {
 	clock_t tStart = clock();
 	double *store;
@@ -148,6 +152,7 @@ Mat LaneDetection::get_lane_curvature() {
 
 	return _out_img;
 }
+
 bool LaneDetection::polynomialfit(int obs, int degree, vector<double> dx, vector<double> dy, double *store) {
 	int i, j, k;
 	vector<double> X;                           //Array that will store the values of sigma(xi),sigma(xi^2),sigma(xi^3)....sigma(xi^2n)
