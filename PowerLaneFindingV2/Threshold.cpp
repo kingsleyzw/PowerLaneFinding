@@ -184,7 +184,7 @@ void Threshold::entrophy_cal() {
 		}
 	}
 
-	//cout << "entropy = " <<entropy << endl;
+	cout << "entropy = " <<entropy << endl;
 	if (entropy < ENTROPY_THRESHOLD) _type = SOBEL_X | BGR_R | YUV_U;
 	else _type = SOBEL_X;
 }

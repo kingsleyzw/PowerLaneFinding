@@ -1,5 +1,7 @@
 .git/
 .vs/
 
+x64/
+Debug/
 *.mp4
 *.jpg

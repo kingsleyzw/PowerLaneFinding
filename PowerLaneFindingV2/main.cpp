@@ -17,31 +17,25 @@ int main(void)
 	Perspective perspective;
 	LaneDetection laneDetection;
 
-	VideoCapture cap("video3.mp4");
+	VideoCapture cap("video/video5.mp4");
 	if (!cap.isOpened()) {
 		cout << "!!! Failed to open file: " << endl;
 		return -1;
 	}
 	Mat frame;
-	int hsv_sum = 0;
-	int frame_num = 0;
 	int num = 0;
 	tStart = clock();
 	for (;;) {
 		if (!cap.read(frame))
 			break;
 		resize(frame, frame, Size(frame.cols / SCALE, frame.rows / SCALE));
-		/*Mat hsv;
-		std::vector<Mat> mv;
-		cvtColor(frame, hsv, COLOR_BGR2HSV);
-		split(hsv, mv);
-		hsv_num += mean(mv[2]);*/
 		wrp = perspective.warp(frame);
 		tsh = threshold.combine_thresh(wrp);
-		dst = laneDetection.finding_lane_line(tsh);
+		//dst = laneDetection.finding_lane_line(tsh);
 		imshow("frame", frame);
-		imshow("window", dst);
 		imshow("wrp", wrp);
+		imshow("tsh", tsh);
+		//imshow("window", dst);
 		/*if (((double)(clock() - tStart) / CLOCKS_PER_SEC) > 1) {
 			imwrite("pics/pic" + to_string(num)+".jpg", frame);
 			num++;
