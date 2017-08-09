@@ -24,7 +24,7 @@ private:
 	double _ym_per_pix;
 	Mat _out_img; // input image with rectangle on lanes. use for debug
 	Mat _process_img;
-    Point _idx[2]; // left and right base points
+    vector<Point> _idx; // left and right base points
 	int _nwindows; // how many blocks we want to use for lane finding
 	int _window_height; // the height of window
 	int _margin; // the width of margin
@@ -32,8 +32,10 @@ private:
 	vector<double> _left_lane_inds_x, _left_lane_inds_y; // collect all good points in right and left lanes
 	vector<double> _right_lane_inds_x, _right_lane_inds_y;
 
+	void decide_base_points();
+
 	// find 2 base points according to the density of points in lanes
-	void find_base_points();
+	vector<Point> find_base_points(int find_loc);
 
 	// find 2 lines in picture according to base points
 	void find_line();

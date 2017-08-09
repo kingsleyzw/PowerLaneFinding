@@ -26,15 +26,49 @@ Mat LaneDetection::finding_lane_line(Mat lanes) {
 	_right_lane_inds_y.clear();
 
 	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
-	find_base_points();
+	decide_base_points();
 	find_line();
 	return get_lane_curvature();
 }
 
-void LaneDetection::find_base_points() {
-	Mat lanes_avg;
+void LaneDetection::decide_base_points() {
+	vector<Point> bot, top;
+	int near_parameter = 10;
 
-	reduce(_out_img(Rect(Point(0, IMG_ROW_SIZE/SCALE), Point(IMG_COL_SIZE/SCALE, (IMG_ROW_SIZE/2)/SCALE))), lanes_avg, 0, CV_REDUCE_AVG);
+	bot = find_base_points(0);
+	if (bot[0].x == 0 || bot[1].x == 0) {
+		top = find_base_points(1);
+		if (bot[0].x != 0) {
+			if (abs(bot[0].x - top[0].x) > near_parameter)
+				bot[1].x = top[0].x;
+			else if(abs(bot[0].x - top[1].x) > near_parameter)
+				bot[1].x = top[1].x;
+		}
+		if (bot[1].x != 0) {
+			if (abs(bot[1].x - top[0].x) > near_parameter)
+				bot[0].x = top[0].x;
+			else if(abs(bot[1].x - top[1].x) > near_parameter)
+				bot[0].x = top[1].x;
+		}
+	}
+
+	if (bot[0].x > bot[1].x)
+		swap(bot[0], bot[1]);
+
+	_idx = bot;
+	//cout << _idx[0] <<endl;
+	//cout << _idx[1] << endl;
+}
+
+vector<Point> LaneDetection::find_base_points(int find_loc) {
+	Mat lanes_avg, finding_location;
+	vector<Point> idx; idx.resize(2);
+	if(find_loc == 0) // bottom half 
+		finding_location = _out_img(Rect(Point(0, (IMG_ROW_SIZE - 1) / SCALE), Point(IMG_COL_SIZE / SCALE, (IMG_ROW_SIZE / 2) / SCALE)));
+	else if(find_loc == 1) // upper half
+		finding_location = _out_img(Rect(Point(0, 0), Point(IMG_COL_SIZE / SCALE, (IMG_ROW_SIZE / 2) / SCALE)));
+
+	reduce(finding_location, lanes_avg, 0, CV_REDUCE_AVG);
 	//ofstream file1("orient1.txt"); file1 << lanes_avg; file1.close();
 	int edges = lanes_avg.cols*0.1;
 	for (int i=0, j=lanes_avg.cols*0.9; i < edges; i++, j++) {
@@ -42,21 +76,20 @@ void LaneDetection::find_base_points() {
 		lanes_avg.at<uchar>(0, j) = 0;
 	}
 		
-	minMaxLoc(lanes_avg, NULL, NULL, NULL, &_idx[0]);
+	minMaxLoc(lanes_avg, NULL, NULL, NULL, &idx[0]);
 
-	cout << _idx[0] << endl;
+	//cout << idx[0] << endl;
 
 	for (int i = 0; i < 150/SCALE; i++) {
-		if(_idx[0].x + i < lanes_avg.cols) lanes_avg.at<uchar>(0, _idx[0].x + i) = 0;
-		if(_idx[0].x - i >= 0) lanes_avg.at<uchar>(0, _idx[0].x - i) = 0;
+		if(idx[0].x + i < lanes_avg.cols) lanes_avg.at<uchar>(0, idx[0].x + i) = 0;
+		if(idx[0].x - i >= 0) lanes_avg.at<uchar>(0, idx[0].x - i) = 0;
 	}
 
-	minMaxLoc(lanes_avg, NULL, NULL, NULL, &_idx[1]);
+	minMaxLoc(lanes_avg, NULL, NULL, NULL, &idx[1]);
 	
-	cout << _idx[1] << endl;
+	//cout << idx[1] << endl;
 
-	if (_idx[0].x > _idx[1].x)
-		swap(_idx[0], _idx[1]);
+	return idx;
 }
 
 void LaneDetection::find_line() {
@@ -73,7 +106,7 @@ void LaneDetection::find_line() {
 		win_y_low = _out_img.rows - i*_window_height;
 		win_y_high = _out_img.rows - (i + 1)*_window_height;
 		win_x_left_low = (cur_x_left - _margin >= 0) ? cur_x_left - _margin : 0;
-		win_x_left_high = (cur_x_left + _margin < _out_img.cols) ? cur_x_right + _margin : _out_img.cols - 1;
+		win_x_left_high = (cur_x_left + _margin < _out_img.cols) ? cur_x_left + _margin : _out_img.cols - 1;
 		win_x_right_low = (cur_x_right - _margin >= 0) ? cur_x_right - _margin : 0;
 		win_x_right_high = (cur_x_right + _margin < _out_img.cols) ? cur_x_right + _margin : _out_img.cols - 1;
 		// Identify the nonzero pixels in x and y within the window
