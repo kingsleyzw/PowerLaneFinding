@@ -1,4 +1,5 @@
 .git/
 .vs/
 
-PowerLaneFindingV2/*.mp4
+*.mp4
+*.jpg
