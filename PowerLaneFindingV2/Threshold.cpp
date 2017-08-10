@@ -145,9 +145,9 @@ Mat Threshold::combine_thresh(Mat src) {
 	else if (_type & SOBEL_MAG) grad_magdir = grad_mag;
 	else if (_type & SOBEL_DIR) grad_magdir = grad_dir;
 	else grad_magdir = Mat::zeros(Size(src.cols, src.rows), CV_8U);
-	imshow("x", grad_x);
-	imshow("y", grad_y);
-	imshow("xy", grad_xy);
+	//imshow("x", grad_x);
+	//imshow("y", grad_y);
+	//imshow("xy", grad_xy);
 	//imshow("mag", grad_mag);
 	//imshow("dir", grad_dir);
 	//imshow("magdir", grad_magdir);
@@ -228,7 +228,7 @@ void Threshold::source_image_process(Mat src) {
 	// convert source image to GRAY-scale and HLS color space
 	cvtColor(src_blur, _gray, COLOR_BGR2GRAY);
 	//_clahe->apply(_gray, _clahe_gray);
-	//imshow("clahe", gray);
+	//imshow("gray", _gray);
 
 	cvtColor(src, hls, COLOR_BGR2HLS);
 	cvtColor(src, yuv, COLOR_BGR2YUV);

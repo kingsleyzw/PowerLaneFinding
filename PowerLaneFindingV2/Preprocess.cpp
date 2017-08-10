@@ -30,8 +30,8 @@ Mat Preprocess::brightness_adjust(Mat src) {
 	vector<Mat> channels;
 	split(hsv, channels);
 	
-	equalizeHist(channels[2], channels[2]);
-	merge(channels, hsv);
+	/*equalizeHist(channels[2], channels[2]);
+	merge(channels, hsv);*/
 	//hsv += Scalar(0, 0, 70);
 
 	cvtColor(hsv, result, CV_HSV2BGR);
