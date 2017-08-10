@@ -243,10 +243,7 @@ bool LaneDetection::polynomialfit(int obs, int degree, vector<double> dx, vector
 			if (j != i)                          //then subtract all the lhs values except the coefficient of the variable whose value                                   is being calculated
 				store[i] =store[i] - B[i][j] * store[j];
 		store[i] = store[i] / B[i][i];           //now finally divide the rhs by the coefficient of the variable to be calculated
-	}
-	/*cout << "\nThe values of the coefficients are as follows:\n";
-	for (i = 0; i<degree; i++)
-		cout << "x^" << i << "=" << store[i] << endl;*/            // Print the values of x^0,x^1,x^2,x^3,....    
+	}   
 
 	return true; /* we do not "analyse" the result (cov matrix mainly)
 				 to know if the fit is "good" */

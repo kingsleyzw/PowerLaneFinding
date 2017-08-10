@@ -13,6 +13,7 @@ public:
 	cv::Mat read_resize(string name, int scale = 1);
 	int preprocess();
 	cv::Mat read_undistort_resize(string name, int scale = 1);
+	cv::Mat brightness_adjust(cv::Mat src);
 private:
 	// for camera undistort
 	int _nx, _ny;

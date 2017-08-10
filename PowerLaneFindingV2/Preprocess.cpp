@@ -23,6 +23,24 @@ Mat Preprocess::read_undistort_resize(string name, int scale) {
 	resize(clb, clb, Size(src.cols / scale, src.rows / scale));
 	return clb;
 }
+Mat Preprocess::brightness_adjust(Mat src) {
+	Mat hsv, result;
+	cvtColor(src, hsv, CV_BGR2HSV);
+	
+	vector<Mat> channels;
+	split(hsv, channels);
+	
+	equalizeHist(channels[2], channels[2]);
+	merge(channels, hsv);
+	//hsv += Scalar(0, 0, 70);
+
+	cvtColor(hsv, result, CV_HSV2BGR);
+	
+	Scalar avg = mean(channels[2]);
+	cout << avg[0] << endl;
+
+	return result;
+}
 int Preprocess::preprocess() {
 	
 	string filename1 = "intrinsic";

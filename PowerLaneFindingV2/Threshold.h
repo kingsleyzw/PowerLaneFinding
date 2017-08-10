@@ -6,13 +6,13 @@
 #define MAX_SOBEL_X_THRESH    255
 #define MIN_SOBEL_Y_THRESH    20
 #define MAX_SOBEL_Y_THRESH    255
-#define MIN_SOBEL_MAG_THRESH  20
+#define MIN_SOBEL_MAG_THRESH  30
 #define MAX_SOBEL_MAG_THRESH  255
-#define MIN_SOBEL_DIR_THRESH  0.3
-#define MAX_SOBEL_DIR_THRESH  0.7
+#define MIN_SOBEL_DIR_THRESH  0
+#define MAX_SOBEL_DIR_THRESH  0.4
 #define MIN_BGR_R_THRESH      140
 #define MAX_BGR_R_THRESH      255
-#define MIN_HLS_S_THRESH      100
+#define MIN_HLS_S_THRESH      80
 #define MAX_HLS_S_THRESH      255
 #define MIN_YUV_U_THRESH      60
 #define MAX_YUV_U_THRESH      125
