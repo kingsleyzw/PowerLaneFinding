@@ -29,7 +29,6 @@ Mat LaneDetection::finding_lane_line(Mat lanes) {
 	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 	if(_first_time) decide_base_points();
 	_first_time = false;
-	cout << _first_time << endl;
 	find_line();
 	return get_lane_curvature();
 }

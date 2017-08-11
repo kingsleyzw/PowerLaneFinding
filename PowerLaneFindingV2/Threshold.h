@@ -2,24 +2,24 @@
 #define THRESHOLD_H
 
 #define d_sobel_kernel_size   3
-#define MIN_SOBEL_X_THRESH    60
-#define MAX_SOBEL_X_THRESH    255
-#define MIN_SOBEL_Y_THRESH    20
-#define MAX_SOBEL_Y_THRESH    255
-#define MIN_SOBEL_MAG_THRESH  30
-#define MAX_SOBEL_MAG_THRESH  255
-#define MIN_SOBEL_DIR_THRESH  0
-#define MAX_SOBEL_DIR_THRESH  0.4
-#define MIN_BGR_R_THRESH      140
-#define MAX_BGR_R_THRESH      255
-#define MIN_HLS_S_THRESH      80
-#define MAX_HLS_S_THRESH      255
-#define MIN_YUV_U_THRESH      60
-#define MAX_YUV_U_THRESH      125
-#define MIN_LAP_THRESH        30
-#define MAX_LAP_THRESH        200
-#define MIN_CAN_THRESH        50
-#define MAX_CAN_THRESH        150
+#define MIN_SOBEL_X_THRESH    10  // 60
+#define MAX_SOBEL_X_THRESH    25 // 255
+#define MIN_SOBEL_Y_THRESH    10  // 20
+#define MAX_SOBEL_Y_THRESH    25 // 255
+#define MIN_SOBEL_MAG_THRESH  15  // 30
+#define MAX_SOBEL_MAG_THRESH  30 // 255
+#define MIN_SOBEL_DIR_THRESH  0.99   // 0
+#define MAX_SOBEL_DIR_THRESH  1.0  // 0.4
+#define MIN_BGR_R_THRESH      30 // 140
+#define MAX_BGR_R_THRESH      60 // 255
+#define MIN_HLS_S_THRESH      30 // 80
+#define MAX_HLS_S_THRESH      60 // 255
+#define MIN_YUV_U_THRESH      125 // 60
+#define MAX_YUV_U_THRESH      130 // 125
+#define MIN_LAP_THRESH        30  // 30
+#define MAX_LAP_THRESH        200 // 200
+#define MIN_CAN_THRESH        50 // 50
+#define MAX_CAN_THRESH        150 // 150
 #define ENTROPY_THRESHOLD     3.6
 
 #include <opencv2/opencv.hpp>
