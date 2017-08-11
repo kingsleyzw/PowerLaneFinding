@@ -184,10 +184,10 @@ void Threshold::entrophy_cal() {
 		}
 	}
 
-	cout << "entropy = " <<entropy << endl;
-	/*if (entropy < ENTROPY_THRESHOLD) _type = SOBEL_X | BGR_R | YUV_U;
-	else _type = SOBEL_X | SOBEL_Y | SOBEL_MAG | SOBEL_DIR | BGR_R | HLS_S | YUV_U | LAP | CAN;*/
-	_type = SOBEL_X | SOBEL_Y | SOBEL_MAG | SOBEL_DIR | BGR_R | HLS_S | YUV_U | LAP | CAN;
+	//cout << "entropy = " <<entropy << endl;
+	if (entropy < ENTROPY_THRESHOLD) _type = SOBEL_X | BGR_R | YUV_U;
+	else _type = SOBEL_X;
+	//_type = SOBEL_X | SOBEL_Y | SOBEL_MAG | SOBEL_DIR | BGR_R | HLS_S | YUV_U | LAP | CAN;
 }
 
 Mat Threshold::threshold_process(Mat src, double thresh_min, double thresh_max, bool scale) {

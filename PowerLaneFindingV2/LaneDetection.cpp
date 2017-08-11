@@ -9,6 +9,7 @@ LaneDetection::LaneDetection() {
 	_nwindows = 7;
 	_margin = 100 / SCALE;
 	_minpix = 50 / SCALE;
+	_first_time = true;
 
 	// for curvature calculation
 	_degree = 2;
@@ -26,7 +27,9 @@ Mat LaneDetection::finding_lane_line(Mat lanes) {
 	_right_lane_inds_y.clear();
 
 	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
-	decide_base_points();
+	if(_first_time) decide_base_points();
+	_first_time = false;
+	cout << _first_time << endl;
 	find_line();
 	return get_lane_curvature();
 }
@@ -105,6 +108,9 @@ void LaneDetection::find_line() {
 	int win_x_right_low, win_x_right_high;
 	_out_img.copyTo(_process_img);
 
+	// store next idx
+	int l_x = 0;
+	int r_x = 0;
 	//ofstream file1("orient1.txt"); file1 << _out_img; file1.close();
 	for (int i = 0; i < _nwindows; i++) {
 		// Identify window boundaries in x and y(and right and left)
@@ -143,17 +149,21 @@ void LaneDetection::find_line() {
 			//cout << sum.x / first_inds.size() << endl;
 			sum = accumulate(left_inds.begin(), left_inds.end(), zero);
 			cur_x_left = sum.x / left_inds.size();
+			if (i == 0) l_x = cur_x_left;
 		}
 		if (right_non_zero > _minpix) {
 			//cout << "count zero " << right_non_zero << endl;
 			//cout << sum.x / right_inds.size() << endl;
 			sum = accumulate(right_inds.begin(), right_inds.end(), zero);
 			cur_x_right = sum.x / right_inds.size();
+			if (i == 0) r_x = cur_x_right;
 		}
 		// Draw the windows on the visualization image
 		cv::rectangle(_process_img, Point(win_x_left_low, win_y_low), Point(win_x_left_high, win_y_high), 255, 2);
 		cv::rectangle(_process_img, Point(win_x_right_low, win_y_low), Point(win_x_right_high, win_y_high), 255, 2);
 	}
+	if(l_x != 0) _idx[0].x = l_x;
+	if(r_x != 0) _idx[1].x = r_x;
 	//imshow("outImg", _out_img);
 	_process_img.copyTo(_out_img);
 }

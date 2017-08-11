@@ -25,6 +25,7 @@ private:
 	Mat _out_img; // input image with rectangle on lanes. use for debug
 	Mat _process_img;
     vector<Point> _idx; // left and right base points
+	bool _first_time;
 	int _nwindows; // how many blocks we want to use for lane finding
 	int _window_height; // the height of window
 	int _margin; // the width of margin
