@@ -41,6 +41,73 @@ Mat Preprocess::brightness_adjust(Mat src) {
 
 	return result;
 }
+Mat Preprocess::brightness_and_contrast_auto(const Mat &src, float clipHistPercent) {
+	Mat dst(src.rows, src.cols, src.type());
+
+	CV_Assert(clipHistPercent >= 0);
+	CV_Assert((src.type() == CV_8UC1) || (src.type() == CV_8UC3) || (src.type() == CV_8UC4));
+
+	int histSize = 256;
+	float alpha, beta;
+	double minGray = 0, maxGray = 0;
+
+	//to calculate grayscale histogram
+	Mat gray;
+	if (src.type() == CV_8UC1) gray = src;
+	else if (src.type() == CV_8UC3) cvtColor(src, gray, CV_BGR2GRAY);
+	else if (src.type() == CV_8UC4) cvtColor(src, gray, CV_BGRA2GRAY);
+	if (clipHistPercent == 0) {
+		// keep full available range
+		minMaxLoc(gray, &minGray, &maxGray);
+	}
+	else {
+		Mat hist; //the grayscale histogram
+
+		float range[] = { 0, 256 };
+		const float* histRange = { range };
+		bool uniform = true;
+		bool accumulate = false;
+		calcHist(&gray, 1, 0, Mat(), hist, 1, &histSize, &histRange, uniform, accumulate);
+
+		// calculate cumulative distribution from the histogram
+		vector<float> accumulator(histSize);
+		accumulator[0] = hist.at<float>(0);
+		for (int i = 1; i < histSize; i++) {
+			accumulator[i] = accumulator[i - 1] + hist.at<float>(i);
+		}
+
+		// locate points that cuts at required value
+		float max = accumulator.back();
+		clipHistPercent *= (max / 100.0); //make percent as absolute
+		clipHistPercent /= 2.0; // left and right wings
+								// locate left cut
+		minGray = 0;
+		while (accumulator[minGray] < clipHistPercent)
+			minGray++;
+
+		// locate right cut
+		maxGray = histSize - 1;
+		while (accumulator[maxGray] >= (max - clipHistPercent))
+			maxGray--;
+	}
+
+	// current range
+	float inputRange = maxGray - minGray;
+
+	alpha = (histSize - 1) / inputRange;   // alpha expands current range to histsize range
+	beta = -minGray * alpha;             // beta shifts current range so that minGray will go to 0
+
+										 // Apply brightness and contrast normalization
+										 // convertTo operates with saurate_cast
+	src.convertTo(dst, -1, alpha, beta);
+
+	// restore alpha channel from source 
+	if (dst.type() == CV_8UC4) {
+		int from_to[] = { 3, 3 };
+		cv::mixChannels(&src, 4, &dst, 1, from_to, 1);
+	}
+	return dst;
+}
 int Preprocess::preprocess() {
 	
 	string filename1 = "intrinsic";

@@ -1,7 +1,7 @@
 #ifndef THRESHOLD_H
 #define THRESHOLD_H
 
-#define d_sobel_kernel_size   3
+#define d_sobel_kernel_size   5
 #define MIN_SOBEL_X_THRESH    10  // 60
 #define MAX_SOBEL_X_THRESH    25 // 255
 #define MIN_SOBEL_Y_THRESH    10  // 20

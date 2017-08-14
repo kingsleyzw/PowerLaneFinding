@@ -9,12 +9,12 @@ using namespace std;
 
 Threshold::Threshold() {
 	_sobel_kernel_size = d_sobel_kernel_size;
-	_clahe = createCLAHE(2.0);
+	//_clahe = createCLAHE(4.0);
 }
 
 Threshold::Threshold(int sobel_kernel_size) {
 	_sobel_kernel_size = sobel_kernel_size;
-	_clahe = createCLAHE(2.0);
+	//_clahe = createCLAHE(4.0);
 }
 
 Mat Threshold::abs_sobel_thresh(char orient, int thresh_min, int thresh_max) {
@@ -145,9 +145,9 @@ Mat Threshold::combine_thresh(Mat src) {
 	else if (_type & SOBEL_MAG) grad_magdir = grad_mag;
 	else if (_type & SOBEL_DIR) grad_magdir = grad_dir;
 	else grad_magdir = Mat::zeros(Size(src.cols, src.rows), CV_8U);
-	imshow("x", grad_x);
-	imshow("y", grad_y);
-	imshow("xy", grad_xy);
+	//imshow("x", grad_x);
+	//imshow("y", grad_y);
+	//imshow("xy", grad_xy);
 	//imshow("mag", grad_mag);
 	//imshow("dir", grad_dir);
 	//imshow("magdir", grad_magdir);
@@ -236,17 +236,27 @@ void Threshold::source_image_process(Mat src) {
 	// split R-Channel from BGR
 	split(src, mv);
 	_r_channel = mv[2];
+	//imshow("B", mv[0]);
+	//imshow("G", mv[1]);
+	//imshow("R", mv[2]);
 	
 	// split S-Channel from HLS
 	mv.clear();
 	split(hls, mv);
 	_s_channel = mv[2];
+	//imshow("H", mv[0]);
+	//imshow("L", mv[1]);
+	//imshow("S", mv[2]);
 	//ofstream file1("s_ch.txt"); file1 << _s_channel; file1.close();
 
 	// split U-Channel from YUV
 	mv.clear();
 	split(yuv, mv);
 	_u_channel = mv[1];
+	//imshow("Y", mv[0]);
+	//imshow("U", mv[1]);
+	//imshow("V", mv[2]);
+	//ofstream file1("yuv.txt"); file1 << mv[0]; file1.close();
 
 	// calculate sobel x and y
 	//Scharr(gray, _sobel_x, CV_64F, 1, 0);

@@ -52,19 +52,19 @@ int main(void)
 	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 	src = preprocess.read_resize("video4/pic9.jpg", SCALE);
 	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
-	adj = preprocess.brightness_adjust(src);
+	//adj = preprocess.brightness_and_contrast_auto(src, 0);
 	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
-	tsh = threshold.combine_thresh(adj);
+	tsh = threshold.combine_thresh(src);
 	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 	wrp = perspective.warp(tsh);
 	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 	dst = laneDetection.finding_lane_line(wrp);
 	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 
-	//imshow("src", src);
-	imshow("adj", adj);
-	//imshow("wrp", wrp);
+	imshow("src", src);
+	//imshow("adj", adj);
 	//imshow("tsh", tsh);
+	//imshow("wrp", wrp);
 	//imshow("dst", dst);
 	waitKey();
 
