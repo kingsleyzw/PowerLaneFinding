@@ -158,8 +158,8 @@ void LaneDetection::find_line() {
 			if (i == 0) r_x = cur_x_right;
 		}
 		// Draw the windows on the visualization image
-		//cv::rectangle(_process_img, Point(win_x_left_low, win_y_low), Point(win_x_left_high, win_y_high), 255, 2);
-		//cv::rectangle(_process_img, Point(win_x_right_low, win_y_low), Point(win_x_right_high, win_y_high), 255, 2);
+		cv::rectangle(_process_img, Point(win_x_left_low, win_y_low), Point(win_x_left_high, win_y_high), 255, 2);
+		cv::rectangle(_process_img, Point(win_x_right_low, win_y_low), Point(win_x_right_high, win_y_high), 255, 2);
 	}
 	if(l_x != 0) _idx[0].x = l_x;
 	if(r_x != 0) _idx[1].x = r_x;

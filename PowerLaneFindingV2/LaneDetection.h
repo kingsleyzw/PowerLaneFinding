@@ -44,7 +44,7 @@ private:
 	// calculate curvature of right and left lanes
 	Mat get_lane_curvature();
 
-	// polyfit using GSL library
+	// polyfit using online resource
 	bool polynomialfit(int obs, int degree, vector<double> dx, vector<double> dy, double *store);
 };
 

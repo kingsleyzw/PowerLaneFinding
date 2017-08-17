@@ -1,18 +1,18 @@
 #ifndef THRESHOLD_H
 #define THRESHOLD_H
 
-#define d_sobel_kernel_size   5
-#define MIN_SOBEL_X_THRESH    10  // 60
-#define MAX_SOBEL_X_THRESH    25 // 255
-#define MIN_SOBEL_Y_THRESH    10  // 20
-#define MAX_SOBEL_Y_THRESH    25 // 255
-#define MIN_SOBEL_MAG_THRESH  15  // 30
-#define MAX_SOBEL_MAG_THRESH  30 // 255
-#define MIN_SOBEL_DIR_THRESH  0.99   // 0
+#define d_sobel_kernel_size   3
+#define MIN_SOBEL_X_THRESH    15  // 60
+#define MAX_SOBEL_X_THRESH    30  // 255
+#define MIN_SOBEL_Y_THRESH    15  // 20
+#define MAX_SOBEL_Y_THRESH    30  // 255
+#define MIN_SOBEL_MAG_THRESH  18  // 30
+#define MAX_SOBEL_MAG_THRESH  60  // 255
+#define MIN_SOBEL_DIR_THRESH  0.99 // 0
 #define MAX_SOBEL_DIR_THRESH  1.0  // 0.4
 #define MIN_BGR_R_THRESH      30 // 140
 #define MAX_BGR_R_THRESH      60 // 255
-#define MIN_HLS_S_THRESH      30 // 80
+#define MIN_HLS_S_THRESH      20 // 80
 #define MAX_HLS_S_THRESH      60 // 255
 #define MIN_YUV_U_THRESH      125 // 60
 #define MAX_YUV_U_THRESH      130 // 125
@@ -67,4 +67,3 @@ private:
 
 
 #endif // !THRESHOLD_H
-

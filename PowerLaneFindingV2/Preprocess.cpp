@@ -34,6 +34,17 @@ Mat Preprocess::brightness_adjust(Mat src) {
 	merge(channels, hsv);*/
 	//hsv += Scalar(0, 0, 70);
 
+	//const int cols = hsv.cols;
+	//const int step = hsv.channels();
+	//const int rows = hsv.rows;
+	//for (int y = 0; y < rows; y++) {
+	//	unsigned char* p_row = hsv.ptr(y) + 2; //gets pointer to the first byte to be changed in this row, SELECTED_CHANNEL_NUMBER is 3 for alpha
+	//	unsigned char* row_end = p_row + cols*step;
+	//	for (; p_row != row_end; p_row += step) {
+	//		*p_row = 200;
+	//	}
+	//}
+
 	cvtColor(hsv, result, CV_HSV2BGR);
 	
 	Scalar avg = mean(channels[2]);
@@ -109,7 +120,6 @@ Mat Preprocess::brightness_and_contrast_auto(const Mat &src, float clipHistPerce
 	return dst;
 }
 int Preprocess::preprocess() {
-	
 	string filename1 = "intrinsic";
 	string filename2 = "distCoeffs";
 	ifstream ifile1((filename1 + ".yml").c_str());
