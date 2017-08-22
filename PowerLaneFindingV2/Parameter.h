@@ -12,8 +12,8 @@
 #define YUV_U                 (0b1<<6)
 #define LAP                   (0b1<<7)
 #define CAN                   (0b1<<8)
-#define IMG_COL_SIZE          854
-#define IMG_ROW_SIZE          480
-#define SCALE                 3
+#define IMG_COL_SIZE          1280
+#define IMG_ROW_SIZE          720
+#define SCALE                 1
 
 #endif // !PARAMETER_H

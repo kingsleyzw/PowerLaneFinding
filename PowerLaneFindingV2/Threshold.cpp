@@ -193,9 +193,9 @@ void Threshold::entrophy_cal() {
 	}
 
 	cout << "entropy = " <<entropy << endl;
-	/*if (entropy < ENTROPY_THRESHOLD) _type = SOBEL_X | BGR_R | YUV_U;
+	/*if (entropy < ENTROPY_THRESHOLD) _type = SOBEL_X | BGR_R;
 	else _type = SOBEL_X;*/
-	_type = SOBEL_X | SOBEL_Y | SOBEL_MAG | BGR_R;
+	_type = SOBEL_X | BGR_R;
 }
 
 Mat Threshold::threshold_process(Mat src, double thresh_min, double thresh_max, bool scale) {
@@ -227,23 +227,19 @@ Mat Threshold::threshold_process(Mat src, double thresh_min, double thresh_max, 
 }
 
 void Threshold::source_image_process(Mat src) {
-	Mat src_blur, hls, yuv;
+	Mat hls, yuv;
 	vector<Mat> mv;
-
-	// reduce noise
-	//GaussianBlur(src, src_blur, Size(3,3), 0, 0, BORDER_DEFAULT);
 	
 	// convert source image to GRAY-scale and HLS color space
-	//cvtColor(src_blur, _gray, COLOR_BGR2GRAY);
+	cvtColor(src, _gray, COLOR_BGR2GRAY);
 	//_clahe->apply(_gray, _clahe_gray);
-
-	_gray = Mat(src.size(), CV_8UC1);
+	/*_gray = Mat(src.size(), CV_8UC1);
 	split(src, mv);
 	for (int i = 0; i < _gray.rows; i++) {
 		for (int j = 0; j < _gray.cols; j++) {
 			_gray.at<uchar>(i, j) = max(max(mv[0].at<uchar>(i, j), mv[1].at<uchar>(i, j)), mv[2].at<uchar>(i, j));
 		}
-	}
+	}*/
 	GaussianBlur(_gray, _gray, Size(3, 3), 0, 0, BORDER_DEFAULT);
 	//imshow("gray", _gray);
 

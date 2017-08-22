@@ -17,9 +17,10 @@ LaneDetection::LaneDetection() {
 	_ym_per_pix = 30.0 / 720;
 }
 
-Mat LaneDetection::finding_lane_line(Mat lanes) {
+Mat LaneDetection::finding_lane_line(Mat lanes, Mat hist) {
 	//clock_t tStart = clock();
 	_window_height = int(lanes.rows / _nwindows);
+	hist_mask(lanes, hist);
 	lanes.copyTo(_out_img);
 	_left_lane_inds_x.clear();
 	_left_lane_inds_y.clear();
@@ -31,6 +32,54 @@ Mat LaneDetection::finding_lane_line(Mat lanes) {
 	_first_time = false;
 	find_line();
 	return get_lane_curvature();
+}
+
+void LaneDetection::hist_mask(Mat lanes, Mat hist) {
+	Mat hist_avg;
+	int left_peak[2], right_peak[2];
+	
+	reduce(hist, hist_avg, 0, CV_REDUCE_AVG);
+
+	int max1 = -1;
+	int max2 = -1;
+
+	for (int i = 0; i < hist_avg.cols/2; i++) {
+		if (hist_avg.at<uchar>(0, i) > max1) {
+			max2 = max1;
+			max1 = hist_avg.at<uchar>(0, i);
+			left_peak[0] = left_peak[1];
+			left_peak[1] = i;
+		}
+	}
+	
+	max1 = -1; max2 = -1;
+
+	for (int i = hist_avg.cols / 2; i < hist_avg.cols; i++) {
+		if (hist_avg.at<uchar>(0, i) > max1) {
+			max2 = max1;
+			max1 = hist_avg.at<uchar>(0, i);
+			right_peak[0] = right_peak[1];
+			right_peak[1] = i;
+		}
+	}
+
+	if (left_peak[0] > left_peak[1]) 
+		swap(left_peak[0], left_peak[1]);
+	if (right_peak[0] > right_peak[1])
+		swap(right_peak[0], right_peak[1]);
+
+	int offset = 120 / SCALE;
+	Mat roi;
+	
+	cout << left_peak[0] << " " << left_peak[1] << endl;
+	cout << right_peak[0] << " " << right_peak[1] << endl;
+
+	roi = lanes(Rect(Point(0, 0), Point(left_peak[0]-offset, lanes.rows-1)));
+	roi.setTo(0);
+	roi = lanes(Rect(Point(left_peak[1]+offset, 0), Point(right_peak[0]-offset, lanes.rows - 1)));
+	roi.setTo(0);
+	roi = lanes(Rect(Point(right_peak[1]+offset, 0), Point(lanes.cols-1, lanes.rows - 1)));
+	roi.setTo(0);
 }
 
 void LaneDetection::decide_base_points() {
@@ -77,7 +126,7 @@ vector<Point> LaneDetection::find_base_points(int find_loc) {
 		lanes_avg.at<uchar>(0, i) = 0;
 		lanes_avg.at<uchar>(0, j) = 0;
 	}
-		
+	
 	minMaxLoc(lanes_avg, NULL, NULL, NULL, &idx[0]);
 
 	//cout << idx[0] << endl;

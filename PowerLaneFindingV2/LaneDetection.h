@@ -16,7 +16,7 @@ public:
 	// 1. find base points
 	// 2. find line (according to base points)
 	// 3. calculate lane curvature according to points found
-	Mat finding_lane_line(Mat lanes);
+	Mat finding_lane_line(Mat lanes, Mat hist);
 
 private:
 	int _degree;
@@ -32,6 +32,8 @@ private:
 	int _minpix; // a threshold to define whether the points in window is good
 	vector<double> _left_lane_inds_x, _left_lane_inds_y; // collect all good points in right and left lanes
 	vector<double> _right_lane_inds_x, _right_lane_inds_y;
+
+	void hist_mask(Mat lanes, Mat hist);
 
 	void decide_base_points();
 

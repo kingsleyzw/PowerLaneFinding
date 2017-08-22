@@ -15,6 +15,7 @@ public:
 	cv::Mat read_undistort_resize(string name, int scale = 1);
 	cv::Mat brightness_adjust(cv::Mat src);
 	cv::Mat brightness_and_contrast_auto(const cv::Mat &src, float clipHistPercent = 0);
+	cv::Mat normalize_intensity(cv::Mat img);
 private:
 	// for camera undistort
 	int _nx, _ny;

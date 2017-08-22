@@ -119,6 +119,7 @@ Mat Preprocess::brightness_and_contrast_auto(const Mat &src, float clipHistPerce
 	}
 	return dst;
 }
+
 int Preprocess::preprocess() {
 	string filename1 = "intrinsic";
 	string filename2 = "distCoeffs";
@@ -191,6 +192,31 @@ int Preprocess::preprocess() {
 
 	return 0;
 }
+
+Mat Preprocess::normalize_intensity(Mat img) {
+	Mat dst;
+	vector<Mat> channels;
+
+	split(img, channels);
+
+	//ofstream file1("I.txt"); file1 << channels[1]; file1.close();
+	//normalize(channels[1], channels[1], 255, 0, NORM_INF);
+	double max;
+	minMaxLoc(channels[1], NULL, &max, NULL, NULL);
+	cout << max << endl;
+	for (int i = 0; i < channels[1].rows; i++) {
+		for (int j = 0; j < channels[1].cols; j++) {
+			if (channels[1].at<uchar>(i, j) > 30) channels[1].at<uchar>(i, j) = 255;
+			else channels[1].at<uchar>(i, j) *= (255/max);
+		}
+	}
+	dilate(channels[1], channels[1], Mat());
+	merge(channels, dst);
+	//imshow("channel 1", channels[1]);
+
+	return dst;
+}
+
 Mat Preprocess::calibration(Mat img) {
 	Mat processedImg;
 	undistort(img, processedImg, _intrinsic, _distCoeffs);
