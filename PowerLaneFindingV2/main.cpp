@@ -52,45 +52,39 @@ int main(void)
 
 	//preprocess.preprocess();
 	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
-	bgr = preprocess.read_resize("fusion/4316RGB.bmp", SCALE);
-	Mat di1 = preprocess.read_resize("fusion/4310DI.bmp", SCALE);
-	Mat di2 = preprocess.read_resize("fusion/4311DI.bmp", SCALE);
-	Mat di3 = preprocess.read_resize("fusion/4312DI.bmp", SCALE);
-	Mat di4 = preprocess.read_resize("fusion/4313DI.bmp", SCALE);
-	Mat di5 = preprocess.read_resize("fusion/4314DI.bmp", SCALE);
-	addWeighted(di1, 1, di2, 1, 0.0, di);
-	addWeighted(di3, 1, di, 1, 0.0, di);
-	addWeighted(di4, 1, di, 1, 0.0, di);
-	addWeighted(di5, 1, di, 1, 0.0, di);
+	bgr = preprocess.read("fusion2/897RGB.bmp", RESIZE);
+	int DI_num = 7;
+	int a = 897;
+	char fileName[50];
+	di = Mat::zeros(bgr.size(), bgr.type());
+	for (int i = 0; i < DI_num; i++) {
+		sprintf(fileName, "fusion2/%dDI.bmp", a-i);
+		Mat tmp = preprocess.read(fileName, RESIZE);
+		addWeighted(tmp, 1, di, 1, 0.0, di);
+	}
 	di = preprocess.normalize_intensity(di);
-	//addWeighted(di, 1, bgr, 0.2, 0.0, di);
-	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 	//adj = preprocess.brightness_adjust(src);
 	//adj = preprocess.brightness_and_contrast_auto(src);
-	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 	wrp = perspective.warp(bgr);
-	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 	tsh = threshold.combine_thresh(wrp);
 	Mat di_wrp = perspective.warp(di);
 	Mat di_hist = draw_histogram(di_wrp, 1);
 	//imshow("di_wrp", di_wrp);
-	imshow("di_hist", di_hist);
-	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
+	//imshow("di_hist", di_hist);
 	dst = laneDetection.finding_lane_line(tsh, di_hist);
-	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 
 	//imshow("bgr", bgr);
 	//imshow("di", di);	
 	//imshow("adj", adj);
 	//imshow("wrp", wrp);
-	imshow("tsh", tsh);
+	//imshow("tsh", tsh);
 	imshow("dst", dst);
 	waitKey();
 
 	/*imwrite("src.jpg", src);
 	imwrite("wrp.jpg", wrp);
-	imwrite("tsh.jpg", tsh);
-	imwrite("dst.jpg", dst);*/
+	imwrite("tsh.jpg", tsh);*/
+	//imwrite("presentation-pics/lidar-fail, camera succeed/897-fusion.bmp", dst);
 	
 	//while (1);
 
@@ -102,6 +96,7 @@ Mat draw_histogram(Mat src, int channel) {
 	split(src, channels);
 	
 	Mat sum;
+	//Mat sub_channel = channels[channel](Rect(Point(0, src.rows*0.8), Point(src.cols-1, src.rows-1)));
 	reduce(channels[channel], sum, 0, CV_REDUCE_AVG, CV_32FC1);
 	normalize(sum, sum, 255, 0, NORM_INF);
 	Mat histogram(Mat::zeros(256, sum.cols, CV_8UC1));

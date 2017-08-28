@@ -1,6 +1,8 @@
 #ifndef PARAMETER_H
 #define PARAMETER_H
 
+#define UNDISTORT             (0b1<<0)
+#define RESIZE                (0b1<<1)
 #define SOBEL_X               (0b1<<0)
 #define SOBEL_Y               (0b1<<1)
 #define SOBEL_XY              (SOBEL_X|SOBEL_Y)

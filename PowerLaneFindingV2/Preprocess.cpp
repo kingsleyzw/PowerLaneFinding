@@ -3,6 +3,7 @@
 #include "dirent.h"
 #include "time.h"
 #include <fstream>
+#include <stdexcept>
 
 using namespace cv;
 
@@ -10,18 +11,14 @@ Preprocess::Preprocess() {
 	_nx = 9;
 	_ny = 6;
 }
-Mat Preprocess::read_resize(string name, int scale) {
+Mat Preprocess::read(string name, int param) {
 	Mat src = imread(name);
-	resize(src, src, Size(src.cols / scale, src.rows / scale));
+	if(param & UNDISTORT) 
+		src = calibration(src);
+	if(param & RESIZE) 
+		resize(src, src, Size(src.cols / SCALE, src.rows / SCALE));
+
 	return src;
-}
-Mat Preprocess::read_undistort_resize(string name, int scale) {
-	Mat src = imread(name);
-	//imwrite("org.jpg", src);
-	Mat clb = calibration(src);
-	//imwrite("test1_2.jpg", clb);
-	resize(clb, clb, Size(src.cols / scale, src.rows / scale));
-	return clb;
 }
 Mat Preprocess::brightness_adjust(Mat src) {
 	Mat hsv, result;
@@ -120,7 +117,7 @@ Mat Preprocess::brightness_and_contrast_auto(const Mat &src, float clipHistPerce
 	return dst;
 }
 
-int Preprocess::preprocess() {
+void Preprocess::preprocess() {
 	string filename1 = "intrinsic";
 	string filename2 = "distCoeffs";
 	ifstream ifile1((filename1 + ".yml").c_str());
@@ -132,7 +129,7 @@ int Preprocess::preprocess() {
 		storage1.release();
 		storage2[filename2] >> _distCoeffs;
 		storage2.release();
-		return 1;
+		return;
 	}
 
 	Size patternSize(_nx, _ny);
@@ -152,22 +149,19 @@ int Preprocess::preprocess() {
 	DIR *directory = opendir(inputDirectory.c_str());
 	struct dirent *dirent = NULL;
 	if (directory == NULL) {
-		cout << "Cannot open Input Folder" << endl;
-		return -1;
+		throw invalid_argument("Cannot open Input Folder");
 	}
 	while ((dirent = readdir(directory)) != NULL) {
 		string fileName = inputDirectory + "\\" + string(dirent->d_name);
 		Mat rawImage = imread(fileName.c_str(), CV_LOAD_IMAGE_GRAYSCALE);
 		if (rawImage.data == NULL) {
-			cout << "Cannot Open Image" << endl;
+			throw invalid_argument("Cannot open Image");
 			continue;
 		}
 		bool patternfound = findChessboardCorners(rawImage, patternSize, corners);
 		if (patternfound) {
 			cornerSubPix(rawImage, corners, Size(11, 11), Size(-1, -1), TermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.1));
 			drawChessboardCorners(rawImage, patternSize, Mat(corners), patternfound);
-			//imshow("find corner",cur);
-			//waitKey();
 			_image_points.push_back(corners);
 			_object_points.push_back(obj);
 		}
@@ -190,7 +184,7 @@ int Preprocess::preprocess() {
 	storage2 << filename2 << _distCoeffs;
 	storage2.release();
 
-	return 0;
+	return;
 }
 
 Mat Preprocess::normalize_intensity(Mat img) {
@@ -203,7 +197,7 @@ Mat Preprocess::normalize_intensity(Mat img) {
 	//normalize(channels[1], channels[1], 255, 0, NORM_INF);
 	double max;
 	minMaxLoc(channels[1], NULL, &max, NULL, NULL);
-	cout << max << endl;
+	//cout << max << endl;
 	for (int i = 0; i < channels[1].rows; i++) {
 		for (int j = 0; j < channels[1].cols; j++) {
 			if (channels[1].at<uchar>(i, j) > 30) channels[1].at<uchar>(i, j) = 255;

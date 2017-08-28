@@ -10,9 +10,8 @@ class Preprocess
 {
 public:
 	Preprocess();
-	cv::Mat read_resize(string name, int scale = 1);
-	int preprocess();
-	cv::Mat read_undistort_resize(string name, int scale = 1);
+	void preprocess();
+	cv::Mat read(string name, int param = 0);
 	cv::Mat brightness_adjust(cv::Mat src);
 	cv::Mat brightness_and_contrast_auto(const cv::Mat &src, float clipHistPercent = 0);
 	cv::Mat normalize_intensity(cv::Mat img);

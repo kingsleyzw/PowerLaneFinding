@@ -18,67 +18,58 @@ LaneDetection::LaneDetection() {
 }
 
 Mat LaneDetection::finding_lane_line(Mat lanes, Mat hist) {
-	//clock_t tStart = clock();
 	_window_height = int(lanes.rows / _nwindows);
-	hist_mask(lanes, hist);
+	//hist_mask(lanes, hist);
 	lanes.copyTo(_out_img);
 	_left_lane_inds_x.clear();
 	_left_lane_inds_y.clear();
 	_right_lane_inds_x.clear();
 	_right_lane_inds_y.clear();
 
-	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 	if(_first_time) decide_base_points();
 	_first_time = false;
 	find_line();
 	return get_lane_curvature();
 }
-
+ 
 void LaneDetection::hist_mask(Mat lanes, Mat hist) {
 	Mat hist_avg;
-	int left_peak[2], right_peak[2];
+	int left_peak, right_peak;
 	
 	reduce(hist, hist_avg, 0, CV_REDUCE_AVG);
 
-	int max1 = -1;
-	int max2 = -1;
+	int max = -1;
 
-	for (int i = 0; i < hist_avg.cols/2; i++) {
-		if (hist_avg.at<uchar>(0, i) > max1) {
-			max2 = max1;
-			max1 = hist_avg.at<uchar>(0, i);
-			left_peak[0] = left_peak[1];
-			left_peak[1] = i;
+	for (int i = hist_avg.cols*0.1; i < hist_avg.cols*0.4; i++) {
+		if (hist_avg.at<uchar>(0, i) > max) {
+			max = hist_avg.at<uchar>(0, i);
+			left_peak = i;
 		}
 	}
 	
-	max1 = -1; max2 = -1;
+	max = -1;
 
-	for (int i = hist_avg.cols / 2; i < hist_avg.cols; i++) {
-		if (hist_avg.at<uchar>(0, i) > max1) {
-			max2 = max1;
-			max1 = hist_avg.at<uchar>(0, i);
-			right_peak[0] = right_peak[1];
-			right_peak[1] = i;
+	for (int i = hist_avg.cols * 0.6; i < hist_avg.cols * 0.9; i++) {
+		if (hist_avg.at<uchar>(0, i) > max) {
+			max = hist_avg.at<uchar>(0, i);
+			right_peak = i;
 		}
 	}
-
-	if (left_peak[0] > left_peak[1]) 
-		swap(left_peak[0], left_peak[1]);
-	if (right_peak[0] > right_peak[1])
-		swap(right_peak[0], right_peak[1]);
 
 	int offset = 120 / SCALE;
 	Mat roi;
 	
-	cout << left_peak[0] << " " << left_peak[1] << endl;
-	cout << right_peak[0] << " " << right_peak[1] << endl;
+	cout << left_peak << endl;
+	cout << right_peak << endl;
 
-	roi = lanes(Rect(Point(0, 0), Point(left_peak[0]-offset, lanes.rows-1)));
+	int lpt = (left_peak - offset) > 0 ? left_peak - offset : 0;
+	int rpt = (right_peak + offset) > 0 ? right_peak + offset : 0;
+
+	roi = lanes(Rect(Point(0, 0), Point(lpt, lanes.rows-1)));
 	roi.setTo(0);
-	roi = lanes(Rect(Point(left_peak[1]+offset, 0), Point(right_peak[0]-offset, lanes.rows - 1)));
+	roi = lanes(Rect(Point(left_peak+offset, 0), Point(right_peak-offset, lanes.rows - 1)));
 	roi.setTo(0);
-	roi = lanes(Rect(Point(right_peak[1]+offset, 0), Point(lanes.cols-1, lanes.rows - 1)));
+	roi = lanes(Rect(Point(rpt, 0), Point(lanes.cols-1, lanes.rows - 1)));
 	roi.setTo(0);
 }
 
@@ -107,7 +98,7 @@ void LaneDetection::decide_base_points() {
 		swap(bot[0], bot[1]);
 
 	_idx = bot;
-	//cout << _idx[0] <<endl;
+	//cout << _idx[0] << endl;
 	//cout << _idx[1] << endl;
 }
 
@@ -212,38 +203,22 @@ void LaneDetection::find_line() {
 	}
 	if(l_x != 0) _idx[0].x = l_x;
 	if(r_x != 0) _idx[1].x = r_x;
-	//imshow("outImg", _out_img);
 	_process_img.copyTo(_out_img);
 }
 
 Mat LaneDetection::get_lane_curvature() {
-	clock_t tStart = clock();
 	double *store;
 	double right_curverad, left_curverad;
 	int vec_num = _right_lane_inds_x.size();
 	store = new double[_degree+1];
-	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 	polynomialfit(vec_num, _degree, _right_lane_inds_x, _right_lane_inds_y, store);
-	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 	right_curverad = (1 + pow(pow((2 * store[2] * _out_img.rows * _ym_per_pix + store[1]), 2), 1.5)) / abs(2 * store[2]);
-	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 	//cout << "right lane curvature: " << right_curverad << endl;
 	
-	/*ostringstream strs;
-	strs << right_curverad;
-	string cur = strs.str();
-	putText(_out_img, "right lane curvature: "+cur, Point(30, IMG_ROW_SIZE/SCALE - 30), FONT_HERSHEY_COMPLEX, 0.5, Scalar(255));
-	*/
 	vec_num = _left_lane_inds_x.size();
 	polynomialfit(vec_num, _degree, _left_lane_inds_x, _left_lane_inds_y, store);
 	left_curverad = (1 + pow(pow((2 * store[2] * _out_img.rows * _ym_per_pix + store[1]), 2), 1.5)) / abs(2 * store[2]);
 	//cout << "left lane curvature: " << left_curverad << endl;
-	/*strs.str("");
-	strs.clear();
-	strs << left_curverad;
-	cur = strs.str();
-	putText(_out_img, "left lane curvature:  " + cur, Point(30, IMG_ROW_SIZE/SCALE - 60), FONT_HERSHEY_COMPLEX, 0.5, Scalar(255));
-	*/
 	delete[] store;
 
 	return _out_img;
