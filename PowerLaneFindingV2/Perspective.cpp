@@ -1,6 +1,11 @@
 #include "Perspective.h"
 #include "Parameter.h"
 
+/*
+Content:
+1. decide ROI manually
+2. call getPerspectiveTransform() to get _M
+*/
 Perspective::Perspective() {
 	// fusion2 897
 	_src[0] = Point2f((330.) / SCALE, 400. / SCALE);
@@ -68,6 +73,16 @@ Perspective::Perspective() {
 	_M = getPerspectiveTransform(_src, _dst);
 }
 
+/*
+Input param:
+Mat img - image we want to warp.
+
+Return value:
+Mat - warped image
+
+Content:
+1. warp image 
+*/
 Mat Perspective::warp(Mat img) {
 	Mat dst;
 

@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="Preprocess.cpp" />
     <ClCompile Include="LaneDetection.cpp" />
     <ClCompile Include="main.cpp" />
@@ -154,6 +155,7 @@
     <ClCompile Include="Threshold.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Pipeline.h" />
     <ClInclude Include="Preprocess.h" />
     <ClInclude Include="LaneDetection.h" />
     <ClInclude Include="Parameter.h" />

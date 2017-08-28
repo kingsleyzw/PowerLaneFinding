@@ -7,16 +7,39 @@
 #include <future>
 using namespace std;
 
+/*
+Content:
+initialize sobel kernel size according to default
+*/
 Threshold::Threshold() {
 	_sobel_kernel_size = d_sobel_kernel_size;
 	//_clahe = createCLAHE(4.0);
 }
 
+/*
+Input param:
+int sobel_kernel_size - sobel kernel size for sobel filter
+
+Content:
+initialize sobel kernel sieze according to input
+*/
 Threshold::Threshold(int sobel_kernel_size) {
 	_sobel_kernel_size = sobel_kernel_size;
 	//_clahe = createCLAHE(4.0);
 }
 
+/*
+Input param:
+char orient - 'x' or 'y'
+int thresh_min - minimum threshold value
+int thresh_max - maximum threshold value
+
+Return value:
+Mat - image after applying threshold on filter
+
+Content:
+apply threshold on sobel filter 
+*/
 Mat Threshold::abs_sobel_thresh(char orient, int thresh_min, int thresh_max) {
 	if (orient == 'y') 
 		return threshold_process(_sobel_y, thresh_min, thresh_max);
@@ -24,12 +47,34 @@ Mat Threshold::abs_sobel_thresh(char orient, int thresh_min, int thresh_max) {
 		return threshold_process(_sobel_x, thresh_min, thresh_max);
 }
 
+/*
+Input param:
+int thresh_min - minimum threshold value
+int thresh_max - maximum threshold value
+
+Return value:
+Mat - image after applying threshold on filter
+
+Content:
+apply threshold on sobel magnitude filter
+*/
 Mat Threshold::mag_thresh(int thresh_min, int thresh_max) {
 	Mat grad_mag;
 	magnitude(_sobel_x, _sobel_y, grad_mag);
 	return threshold_process(grad_mag, thresh_min, thresh_max);
 }
 
+/*
+Input param:
+int thresh_min - minimum threshold value
+int thresh_max - maximum threshold value
+
+Return value:
+Mat - image after applying threshold on filter
+
+Content:
+apply threshold on sobel direction filter
+*/
 Mat Threshold::dir_thresh(double thresh_min, double thresh_max) {
 	Mat abs_grad_x, abs_grad_y;
 	Mat grad_dir;
@@ -39,24 +84,79 @@ Mat Threshold::dir_thresh(double thresh_min, double thresh_max) {
 	return threshold_process(grad_dir, thresh_min, thresh_max, false);
 }
 
+/*
+Input param:
+int thresh_min - minimum threshold value
+int thresh_max - maximum threshold value
+
+Return value:
+Mat - image after applying threshold on filter
+
+Content:
+apply threshold on rgb r channel
+*/
 Mat Threshold::rgb_thresh(int thresh_min, int thresh_max) {
 	return threshold_process(_r_channel, thresh_min, thresh_max, false);
 }
 
+/*
+Input param:
+int thresh_min - minimum threshold value
+int thresh_max - maximum threshold value
+
+Return value:
+Mat - image after applying threshold on filter
+
+Content:
+apply threshold on hls s channel
+*/
 Mat Threshold::hls_thresh(int thresh_min, int thresh_max) {
 	return threshold_process(_s_channel, thresh_min, thresh_max, false);
 }
 
+/*
+Input param:
+int thresh_min - minimum threshold value
+int thresh_max - maximum threshold value
+
+Return value:
+Mat - image after applying threshold on filter
+
+Content:
+apply threshold on yuv u channel
+*/
 Mat Threshold::yuv_thresh(int thresh_min, int thresh_max) {
 	return threshold_process(_u_channel, thresh_min, thresh_max, false);
 }
 
+/*
+Input param:
+int thresh_min - minimum threshold value
+int thresh_max - maximum threshold value
+
+Return value:
+Mat - image after applying threshold on filter
+
+Content:
+apply threshold on laplace filter
+*/
 Mat Threshold::lap_thresh(int thresh_min, int thresh_max) {
 	Mat lap;
 	Laplacian(_gray, lap, CV_64F, 3);
 	return threshold_process(lap, thresh_min, thresh_max, false);
 }
 
+/*
+Input param:
+int thresh_min - minimum threshold value
+int thresh_max - maximum threshold value
+
+Return value:
+Mat - image after applying threshold on filter
+
+Content:
+apply threshold on canny filter
+*/
 Mat Threshold::can_thresh(int thresh_min, int thresh_max) {
 	Mat can;
 	Canny(_gray, can, thresh_min, thresh_max, _sobel_kernel_size);
@@ -64,6 +164,18 @@ Mat Threshold::can_thresh(int thresh_min, int thresh_max) {
 	return can;
 }
 
+/*
+Input param:
+Mat src - source image
+
+Return value:
+image after applying edge detection
+
+Content:
+1. compute sobel x, y and color space transformation
+2. decide which method we want to take. //Now fixed//
+3. apply threshold.
+*/
 Mat Threshold::combine_thresh(Mat src) {
 	clock_t tStart = clock();
 	Mat grad_x, grad_y, grad_mag, grad_dir;
@@ -73,7 +185,7 @@ Mat Threshold::combine_thresh(Mat src) {
 	queue<future<Mat>> f;
 
 	source_image_process(src);
-	entrophy_cal();
+	entropy_cal();
 	//printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 
 	/*if (type & SOBEL_X) grad_x = abs_sobel_thresh('x', MIN_SOBEL_X_THRESH, MAX_SOBEL_X_THRESH);
@@ -175,7 +287,12 @@ Mat Threshold::combine_thresh(Mat src) {
 	return dst;
 }
 
-void Threshold::entrophy_cal() {
+/*
+Content:
+1. calculate entropy //Now useless. it can be a standart to choose threshold method in future//
+2. choose edge detection method. //Now fixed//
+*/
+void Threshold::entropy_cal() {
 	Mat hist;
 	int histSize = 256;
 	float range[] = { 0, 256 };
@@ -198,6 +315,19 @@ void Threshold::entrophy_cal() {
 	_type = SOBEL_X | BGR_R;
 }
 
+/*
+Input param:
+Mat src - source image
+int thresh_min - minimum threshold value
+int thresh_max - maximum threshold value
+bool scale - whether normalizing source image to 0~255
+
+Return value:
+Mat - image after applying threshold
+
+Content:
+apply threshold
+*/
 Mat Threshold::threshold_process(Mat src, double thresh_min, double thresh_max, bool scale) {
 	Mat abs_src, dst;
 
@@ -226,6 +356,14 @@ Mat Threshold::threshold_process(Mat src, double thresh_min, double thresh_max, 
 	return dst;
 }
 
+/*
+Input param:
+Mat src - source image
+
+Content:
+1. apply sobel x y filter on source image.
+2. apply color space transformation on source image.
+*/
 void Threshold::source_image_process(Mat src) {
 	Mat hls, yuv;
 	vector<Mat> mv;
@@ -233,15 +371,7 @@ void Threshold::source_image_process(Mat src) {
 	// convert source image to GRAY-scale and HLS color space
 	cvtColor(src, _gray, COLOR_BGR2GRAY);
 	//_clahe->apply(_gray, _clahe_gray);
-	/*_gray = Mat(src.size(), CV_8UC1);
-	split(src, mv);
-	for (int i = 0; i < _gray.rows; i++) {
-		for (int j = 0; j < _gray.cols; j++) {
-			_gray.at<uchar>(i, j) = max(max(mv[0].at<uchar>(i, j), mv[1].at<uchar>(i, j)), mv[2].at<uchar>(i, j));
-		}
-	}*/
 	GaussianBlur(_gray, _gray, Size(3, 3), 0, 0, BORDER_DEFAULT);
-	//imshow("gray", _gray);
 
 	cvtColor(src, hls, COLOR_BGR2HLS);
 	cvtColor(src, yuv, COLOR_BGR2YUV);
@@ -250,31 +380,18 @@ void Threshold::source_image_process(Mat src) {
 	mv.clear();
 	split(src, mv);
 	_r_channel = mv[2];
-	//imshow("B", mv[0]);
-	//imshow("G", mv[1]);
-	//imshow("R", mv[2]);
 	
 	// split S-Channel from HLS
 	mv.clear();
 	split(hls, mv);
 	_s_channel = mv[2];
-	//imshow("H", mv[0]);
-	//imshow("L", mv[1]);
-	//imshow("S", mv[2]);
-	//ofstream file1("s_ch.txt"); file1 << _s_channel; file1.close();
 
 	// split U-Channel from YUV
 	mv.clear();
 	split(yuv, mv);
 	_u_channel = mv[1];
-	//imshow("Y", mv[0]);
-	//imshow("U", mv[1]);
-	//imshow("V", mv[2]);
-	//ofstream file1("yuv.txt"); file1 << mv[0]; file1.close();
 
 	// calculate sobel x and y
-	//Scharr(gray, _sobel_x, CV_64F, 1, 0);
 	Sobel(_gray, _sobel_x, CV_64F, 1, 0, _sobel_kernel_size);
-	//Scharr(gray, _sobel_y, CV_64F, 0, 1);
 	Sobel(_gray, _sobel_y, CV_64F, 0, 1, _sobel_kernel_size);
 }

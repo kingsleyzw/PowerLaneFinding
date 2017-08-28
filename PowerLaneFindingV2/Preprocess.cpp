@@ -7,10 +7,30 @@
 
 using namespace cv;
 
+/*
+Content:
+initialize variables of undistortion
+*/
 Preprocess::Preprocess() {
 	_nx = 9;
 	_ny = 6;
 }
+
+/*
+Input param:
+string name - file name of the image
+int param - put RESIZE if you want to resize image
+            put UNDISTORT if you want to undistort image 
+			put RESIZE | UNDISTORT if you want to use both
+
+Return value:
+Mat - processed image
+
+Content:
+1. read image
+(2. undistort image)
+(3. resize image)
+*/
 Mat Preprocess::read(string name, int param) {
 	Mat src = imread(name);
 	if(param & UNDISTORT) 
@@ -20,35 +40,10 @@ Mat Preprocess::read(string name, int param) {
 
 	return src;
 }
-Mat Preprocess::brightness_adjust(Mat src) {
-	Mat hsv, result;
-	cvtColor(src, hsv, CV_BGR2HSV);
-	
-	vector<Mat> channels;
-	split(hsv, channels);
-	
-	/*equalizeHist(channels[2], channels[2]);
-	merge(channels, hsv);*/
-	//hsv += Scalar(0, 0, 70);
 
-	//const int cols = hsv.cols;
-	//const int step = hsv.channels();
-	//const int rows = hsv.rows;
-	//for (int y = 0; y < rows; y++) {
-	//	unsigned char* p_row = hsv.ptr(y) + 2; //gets pointer to the first byte to be changed in this row, SELECTED_CHANNEL_NUMBER is 3 for alpha
-	//	unsigned char* row_end = p_row + cols*step;
-	//	for (; p_row != row_end; p_row += step) {
-	//		*p_row = 200;
-	//	}
-	//}
-
-	cvtColor(hsv, result, CV_HSV2BGR);
-	
-	Scalar avg = mean(channels[2]);
-	cout << avg[0] << endl;
-
-	return result;
-}
+/*
+check "http://answers.opencv.org/question/75510/how-to-make-auto-adjustmentsbrightness-and-contrast-for-image-android-opencv-image-correction/"
+*/
 Mat Preprocess::brightness_and_contrast_auto(const Mat &src, float clipHistPercent) {
 	Mat dst(src.rows, src.cols, src.type());
 
@@ -117,6 +112,12 @@ Mat Preprocess::brightness_and_contrast_auto(const Mat &src, float clipHistPerce
 	return dst;
 }
 
+/*
+Content:
+pre-process step of camera calibration(undistortion)
+1. read calibration files if they exist
+2. if file did not exist, compile them.
+*/
 void Preprocess::preprocess() {
 	string filename1 = "intrinsic";
 	string filename2 = "distCoeffs";
@@ -187,6 +188,16 @@ void Preprocess::preprocess() {
 	return;
 }
 
+
+/*
+Input param:
+Mat img - lidar data
+
+Content:
+1. normalize intensity value of lidar data
+   (1). if value > 30, make it 255
+   (2). if value <= 30, normalize the value
+*/
 Mat Preprocess::normalize_intensity(Mat img) {
 	Mat dst;
 	vector<Mat> channels;
@@ -211,11 +222,16 @@ Mat Preprocess::normalize_intensity(Mat img) {
 	return dst;
 }
 
+/*
+Input param:
+Mat img - the image we want to undistort
+
+Content:
+1. undistort image
+*/
 Mat Preprocess::calibration(Mat img) {
 	Mat processedImg;
 	undistort(img, processedImg, _intrinsic, _distCoeffs);
-	//imshow("Original", img);
-	//imshow("Processed", processedImg);
 
 	return processedImg;
 }

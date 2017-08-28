@@ -4,6 +4,10 @@
 #include <fstream>
 #include <numeric>
 
+/*
+Content:
+Initialize variables of lane finding and curvature calculation.
+*/
 LaneDetection::LaneDetection() {
 	// for lane finding
 	_nwindows = 7;
@@ -17,9 +21,23 @@ LaneDetection::LaneDetection() {
 	_ym_per_pix = 30.0 / 720;
 }
 
+/*
+Input param:
+Mat lanes - source image after edge detection
+Mat hist - histogram of lidar data
+
+Return value:
+Mat - source image with lane detection
+
+Content:
+1. find base point
+2. use lidar data to locate road lanes
+3. lane detection
+4. lane curvature calculation
+*/
 Mat LaneDetection::finding_lane_line(Mat lanes, Mat hist) {
 	_window_height = int(lanes.rows / _nwindows);
-	//hist_mask(lanes, hist);
+	hist_mask(lanes, hist);
 	lanes.copyTo(_out_img);
 	_left_lane_inds_x.clear();
 	_left_lane_inds_y.clear();
@@ -29,9 +47,46 @@ Mat LaneDetection::finding_lane_line(Mat lanes, Mat hist) {
 	if(_first_time) decide_base_points();
 	_first_time = false;
 	find_line();
-	return get_lane_curvature();
+	get_lane_curvature();
+	return _out_img;
+}
+
+/*
+Input param:
+Mat lanes - source image after edge detection
+
+Return value:
+Mat - source image with lane detection
+
+Content:
+1. find base point
+2. lane detection
+3. lane curvature calculation
+*/
+Mat LaneDetection::finding_lane_line(Mat lanes) {
+	_window_height = int(lanes.rows / _nwindows);
+	lanes.copyTo(_out_img);
+	_left_lane_inds_x.clear();
+	_left_lane_inds_y.clear();
+	_right_lane_inds_x.clear();
+	_right_lane_inds_y.clear();
+
+	if (_first_time) decide_base_points();
+	_first_time = false;
+	find_line();
+	get_lane_curvature();
+	return _out_img;
 }
  
+/*
+Input param:
+Mat lanes - source image after edge detection
+Mat hist - histogram of lidar data
+
+Content:
+1. find left and right peak of histogram
+2. use peak found to locate lane and mask out other regions
+*/
 void LaneDetection::hist_mask(Mat lanes, Mat hist) {
 	Mat hist_avg;
 	int left_peak, right_peak;
@@ -73,6 +128,11 @@ void LaneDetection::hist_mask(Mat lanes, Mat hist) {
 	roi.setTo(0);
 }
 
+/*
+Content:
+1. find base points in bottom half image
+2. if fail to find base points, find them in top half image
+*/
 void LaneDetection::decide_base_points() {
 	vector<Point> bot, top;
 	int near_parameter = 10;
@@ -98,20 +158,27 @@ void LaneDetection::decide_base_points() {
 		swap(bot[0], bot[1]);
 
 	_idx = bot;
-	//cout << _idx[0] << endl;
-	//cout << _idx[1] << endl;
 }
 
+/*
+Input param:
+int find_loc - base points finding location. 0 for bottom half, 1 for top half
+
+Return value:
+vector<Point> - right and left base points.
+
+Content:
+1. find base points of right and left half
+*/
 vector<Point> LaneDetection::find_base_points(int find_loc) {
 	Mat lanes_avg, finding_location;
 	vector<Point> idx; idx.resize(2);
 	if(find_loc == 0) // bottom half 
 		finding_location = _out_img(Rect(Point(0, (IMG_ROW_SIZE - 1) / SCALE), Point(IMG_COL_SIZE / SCALE, (IMG_ROW_SIZE / 2) / SCALE)));
-	else if(find_loc == 1) // upper half
+	else if(find_loc == 1) // top half
 		finding_location = _out_img(Rect(Point(0, 0), Point(IMG_COL_SIZE / SCALE, (IMG_ROW_SIZE / 2) / SCALE)));
 
 	reduce(finding_location, lanes_avg, 0, CV_REDUCE_AVG);
-	//ofstream file1("orient1.txt"); file1 << lanes_avg; file1.close();
 	int edges = lanes_avg.cols*0.1;
 	for (int i=0, j=lanes_avg.cols*0.9; i < edges; i++, j++) {
 		lanes_avg.at<uchar>(0, i) = 0;
@@ -119,8 +186,6 @@ vector<Point> LaneDetection::find_base_points(int find_loc) {
 	}
 	
 	minMaxLoc(lanes_avg, NULL, NULL, NULL, &idx[0]);
-
-	//cout << idx[0] << endl;
 
 	if ((lanes_avg.cols - idx[0].x) < (idx[0].x - 0)) {
 		for (int i = idx[0].x - 150/SCALE; i < lanes_avg.cols; i++)
@@ -131,14 +196,15 @@ vector<Point> LaneDetection::find_base_points(int find_loc) {
 			lanes_avg.at<uchar>(0, i) = 0;
 	}
 	
-
 	minMaxLoc(lanes_avg, NULL, NULL, NULL, &idx[1]);
 	
-	//cout << idx[1] << endl;
-
 	return idx;
 }
 
+/*
+Content:
+find lane according to base points and sliding window
+*/
 void LaneDetection::find_line() {
 	int cur_x_left = _idx[0].x;
 	int cur_x_right = _idx[1].x;
@@ -150,7 +216,6 @@ void LaneDetection::find_line() {
 	// store next idx
 	int l_x = 0;
 	int r_x = 0;
-	//ofstream file1("orient1.txt"); file1 << _out_img; file1.close();
 	for (int i = 0; i < _nwindows; i++) {
 		// Identify window boundaries in x and y(and right and left)
 		win_y_low = _out_img.rows - i*_window_height;
@@ -184,20 +249,17 @@ void LaneDetection::find_line() {
 		Point zero(0, 0);
 		Point sum;
 		if (left_non_zero > _minpix) {
-			//cout << "count zero " << left_non_zero << endl;
-			//cout << sum.x / first_inds.size() << endl;
 			sum = accumulate(left_inds.begin(), left_inds.end(), zero);
 			cur_x_left = sum.x / left_inds.size();
 			if (i == 0) l_x = cur_x_left;
 		}
 		if (right_non_zero > _minpix) {
-			//cout << "count zero " << right_non_zero << endl;
-			//cout << sum.x / right_inds.size() << endl;
 			sum = accumulate(right_inds.begin(), right_inds.end(), zero);
 			cur_x_right = sum.x / right_inds.size();
 			if (i == 0) r_x = cur_x_right;
 		}
 		// Draw the windows on the visualization image
+		// comment out to speed up
 		cv::rectangle(_process_img, Point(win_x_left_low, win_y_low), Point(win_x_left_high, win_y_high), 255, 2);
 		cv::rectangle(_process_img, Point(win_x_right_low, win_y_low), Point(win_x_right_high, win_y_high), 255, 2);
 	}
@@ -206,7 +268,18 @@ void LaneDetection::find_line() {
 	_process_img.copyTo(_out_img);
 }
 
-Mat LaneDetection::get_lane_curvature() {
+/*
+Input param:
+Mat src - lidar data
+int channel - which channel we want to draw histogram
+
+Return value:
+histogram of specified channel of source image
+
+Content:
+draw histogram of specified channel of source image
+*/
+void LaneDetection::get_lane_curvature() {
 	double *store;
 	double right_curverad, left_curverad;
 	int vec_num = _right_lane_inds_x.size();
@@ -220,10 +293,11 @@ Mat LaneDetection::get_lane_curvature() {
 	left_curverad = (1 + pow(pow((2 * store[2] * _out_img.rows * _ym_per_pix + store[1]), 2), 1.5)) / abs(2 * store[2]);
 	//cout << "left lane curvature: " << left_curverad << endl;
 	delete[] store;
-
-	return _out_img;
 }
 
+/*
+check "http://www.bragitoff.com/2015/09/c-program-for-polynomial-fit-least-squares/"
+*/
 bool LaneDetection::polynomialfit(int obs, int degree, vector<double> dx, vector<double> dy, double *store) {
 	int i, j, k;
 	vector<double> X;                           //Array that will store the values of sigma(xi),sigma(xi^2),sigma(xi^3)....sigma(xi^2n)

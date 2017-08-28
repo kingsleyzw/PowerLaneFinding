@@ -1,3 +1,9 @@
+/* Usage
+
+Lane detection using histogram analysis and sliding window.
+
+*/
+
 #ifndef LANEDETECTION_H
 #define LANEDETECTION_H
 
@@ -18,11 +24,13 @@ public:
 	// 3. calculate lane curvature according to points found
 	Mat finding_lane_line(Mat lanes, Mat hist);
 
+	Mat finding_lane_line(Mat lanes);
+
 private:
 	int _degree;
 	double _xm_per_pix;
 	double _ym_per_pix;
-	Mat _out_img; // input image with rectangle on lanes. use for debug
+	Mat _out_img; // output image with rectangle on lanes. use for debug
 	Mat _process_img;
     vector<Point> _idx; // left and right base points
 	bool _first_time;
@@ -44,7 +52,7 @@ private:
 	void find_line();
 
 	// calculate curvature of right and left lanes
-	Mat get_lane_curvature();
+	void get_lane_curvature();
 
 	// polyfit using online resource
 	bool polynomialfit(int obs, int degree, vector<double> dx, vector<double> dy, double *store);

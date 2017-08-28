@@ -1,3 +1,22 @@
+/* Usage
+
+Edge detection according to specified filter and color space transformation.
+
+*/
+
+/*
+
+Automatic choose edge detection method. 
+
+Ex: daylight - sobel_x | bgr_r | hls_s
+    shadow   - sobel_x | sobel_y | bgr_r
+
+The difficulty is that how to find the standard to know this image is daylight or shadow...etc.
+
+Automatic choose edge detection threshold value.
+
+*/
+
 #ifndef THRESHOLD_H
 #define THRESHOLD_H
 
@@ -36,7 +55,11 @@ public:
 	// 1. sobel x y
 	// 2. sobel magnitude
 	// 3. sobel direction
-	// 4. hls s channel 
+	// 4. rgb r channel 
+	// 5. hls s channel 
+	// 6. yuv u channel 
+	// 7. laplace edge detection
+	// 8. canny edge detection 
 	Mat abs_sobel_thresh(char orient = 'x', int thresh_min = -1, int thresh_max = 255);
 	Mat mag_thresh(int thresh_min = -1, int thresh_max = 255);
 	Mat dir_thresh(double thresh_min = -1, double thresh_max = CV_PI / 2);
@@ -55,14 +78,14 @@ private:
 	int _type;
 	Ptr<CLAHE> _clahe;
 
-	// process source image to gray and s-channel
+	// convert source image(rgb) to gray, hls and yuv.
 	void source_image_process(Mat src);
 
-	// process threshold to source image
+	// process edge-detection to source image
 	Mat threshold_process(Mat src, double thresh_min, double thresh_max, bool scale = true);
 
-	// calculate entrophy of source picture
-	void entrophy_cal();
+	// calculate entrophy of source picture and choose edge detection method
+	void entropy_cal();
 };
 
 

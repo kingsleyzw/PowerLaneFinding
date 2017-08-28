@@ -1,3 +1,12 @@
+/* Usage
+
+Perspective transformation
+*/
+
+/* TO-DO
+Automatic decide ROI (region of interest). The ROI here means the region we want to warp.
+*/
+
 #ifndef PERSPECTIVE_H
 #define PERSPECTIVE_H
 
@@ -13,6 +22,5 @@ private:
 	Point2f _dst[4];
 	Mat _M;
 };
-
 
 #endif // PERSPECTIVE_H
