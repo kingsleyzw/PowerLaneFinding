@@ -92,6 +92,13 @@ void Pipeline::fusion(char* dir_path, char* camera_path, char* lidar_path, int d
 	int lidar_num;
 
 	// camera part
+	//preprocess.preprocess();
+	_bgr = _preprocess.read(s_dir_path + "/" + s_camera_path, RESIZE);
+	//_adj = preprocess.brightness_and_contrast_auto(_bgr);
+	_wrp = _perspective.warp(_bgr);
+	_tsh = _threshold.combine_thresh(_wrp);
+
+	// lidar part
 	lidar_num = atoi(lidar_path);
 	_di = Mat::zeros(_bgr.size(), _bgr.type());
 	for (int i = 0; i < di_num; i++) {
@@ -101,13 +108,6 @@ void Pipeline::fusion(char* dir_path, char* camera_path, char* lidar_path, int d
 	_di = _preprocess.normalize_intensity(_di);
 	di_wrp = _perspective.warp(_di);
 	di_hist = draw_histogram(di_wrp, 1);
-
-	// lidar part
-	//preprocess.preprocess();
-	_bgr = _preprocess.read(s_dir_path + "/" + s_camera_path, RESIZE);
-	//_adj = preprocess.brightness_and_contrast_auto(_bgr);
-	_wrp = _perspective.warp(_bgr);
-	_tsh = _threshold.combine_thresh(_wrp);
 
 	// combine
 	_dst = _laneDetection.finding_lane_line(_tsh, di_hist);
